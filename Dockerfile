@@ -1,17 +1,15 @@
-FROM alpine:3.10
+FROM alpine:3.18
 
-RUN  apk update \
-  && apk add gettext openldap openldap-clients openldap-back-mdb openldap-passwd-pbkdf2 openldap-overlay-memberof openldap-overlay-ppolicy openldap-overlay-refint \
-  && rm -rf /var/cache/apk/* \
-  && mkdir -p /ldap
+RUN apk add --no-cache openldap openldap-clients openldap-back-mdb openldap-passwd-pbkdf2 openldap-overlay-memberof openldap-overlay-ppolicy openldap-overlay-refint
 
-EXPOSE 389
-EXPOSE 636
-
-
-COPY ldap/ /ldap/
+COPY bootstrap/schema/* /etc/openldap/schema/
+COPY bootstrap/ldif /etc/openldap/ldif
 
 COPY docker-entrypoint.sh /
 RUN chmod +xr /docker-entrypoint.sh
 
+RUN mkdir -p /run/slapd/ && chmod 700 /run/slapd/ && chown ldap:ldap /run/slapd/
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
+
+EXPOSE 389 636
